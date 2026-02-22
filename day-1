@@ -1,0 +1,199 @@
+Perfect — that’s exactly how enterprise-grade FSIE labs should be structured.
+
+Here’s the updated Day 1 lab with Static IP planning explicitly highlighted and every step including a brief objective/why it’s done.
+
+Day 1 — Linux Core Setup, SSH & Static IP
+
+Portfolio Artifact Name: Phase1_Day1_CoreSetup
+
+1️⃣ Lab Metadata
+Lab Name: Day 1 — Linux Core Setup, SSH & Static IP
+Phase: Phase 1 – Core Systems
+Objective: Provision a Linux VM with a static IP, secure SSH, basic firewall, and baseline networking.
+Disciplines Covered: Linux Systems, Networking, DevOps Foundation
+Roles Enabled: Linux SysAdmin, Junior DevOps Engineer, DevOps Engineer
+Estimated Duration: 2–3 hours
+Dependencies: None
+Lab Version: 1.1
+Date: 2026-02-07
+2️⃣ Lab Overview / Consulting Context
+
+Every enterprise system starts with a solid OS foundation and predictable networking. A static IP ensures consistent SSH access and reliable multi-node communication. This lab sets the groundwork for on-prem hybrid architecture and SRE-ready operations.
+
+3️⃣ Prerequisites
+
+Host machine (local or cloud VM)
+
+Ubuntu 22.04 LTS ISO or prebuilt VM
+
+Terminal / SSH client
+
+Basic Linux command knowledge
+
+4️⃣ Step-by-Step Lab Execution (With Objectives)
+Step 1 — VM Creation
+
+Objective: Provision a Linux VM to serve as the foundational node for on-prem/hybrid experiments.
+
+# Vagrantfile example
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/bionic64"
+  config.vm.hostname = "fsie-node1"
+  # Assign a static private IP for consistent access
+  config.vm.network "private_network", ip: "192.168.56.10"
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "2048"
+    vb.cpus = 2
+  end
+end
+Step 2 — SSH Key Setup
+
+Objective: Enable secure passwordless login to VM, mimicking enterprise SSH access.
+
+# Generate SSH key pair on host
+ssh-keygen -t ed25519 -C "fsie-lab-key"
+
+# Copy public key to VM
+ssh-copy-id vagrant@192.168.56.10
+
+# Test SSH login
+ssh vagrant@192.168.56.10
+Step 3 — Update OS & Install Core Packages
+
+Objective: Ensure the VM has latest security patches and essential tools for automation and monitoring.
+
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y vim git curl ufw htop net-tools
+Step 4 — Configure Hostname & Hosts
+
+Objective: Establish a consistent hostname and local DNS resolution for multi-node labs.
+
+sudo hostnamectl set-hostname fsie-node1
+echo "192.168.56.10 fsie-node1" | sudo tee -a /etc/hosts
+Step 5 — Configure Static IP Verification
+
+Objective: Ensure VM maintains the static IP, enabling reliable multi-node network design later.
+
+ip addr show
+ping -c 3 192.168.56.10
+Step 6 — Basic Firewall Configuration
+
+Objective: Implement baseline network security and allow only required services.
+
+sudo ufw default deny incoming    # Deny all incoming traffic by default
+sudo ufw default allow outgoing   # Allow all outgoing traffic
+sudo ufw allow ssh                # Allow SSH connections
+sudo ufw enable
+sudo ufw status verbose
+Step 7 — Enable Time Synchronization
+
+Objective: Keep server clock accurate for logging, monitoring, and hybrid/cloud coordination.
+
+sudo timedatectl set-ntp true
+timedatectl status
+Step 8 — Verify Connectivity
+
+Objective: Confirm network, DNS, and SSH setup is correct.
+
+ping -c 3 8.8.8.8      # Internet connectivity
+ping -c 3 google.com   # DNS resolution
+ssh localhost          # Local SSH test
+5️⃣ Automation Scripts / Config Files
+
+VM_Setup.sh
+Automates package installation & firewall configuration
+
+#!/bin/bash
+# Update system
+sudo apt update && sudo apt upgrade -y
+# Install core tools
+sudo apt install -y vim git curl ufw htop net-tools
+# Firewall setup
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow ssh
+sudo ufw enable
+
+SSH_Config.md → Documents SSH key setup, key location, permissions
+
+Hosts_Config.md → Baseline hosts file & hostname configuration
+
+6️⃣ Failure Injection & Observability
+
+Scenario 1: SSH fails due to wrong key
+Scenario 2: Firewall blocks SSH access
+Scenario 3: Static IP conflicts or misconfiguration
+
+Artifacts:
+
+FailureInjection.txt → steps & observations
+
+FailureInjection.png → screenshots/logs
+
+7️⃣ Certification Mapping
+Step	AWS SAA	AWS SAP
+VM Creation	EC2 baseline	Multi-node infra prep
+SSH Setup	Security groups analog	Multi-node access
+Firewall	Security groups concept	Hybrid node security
+Static IP	Private subnet concept	Hybrid connectivity prep
+Packages/Updates	EC2 OS hardening	Operational excellence
+8️⃣ Portfolio Folder Structure
+FSIE-Portfolio/
+ └── Phase1/
+     └── Day1_CoreSetup/
+         ├── README.md
+         ├── VM_Setup.sh
+         ├── SSH_Config.md
+         ├── Hosts_Config.md
+         ├── FailureInjection.txt
+         └── FailureInjection.png
+9️⃣ README.md Template
+
+(Updated with step objectives)
+
+# Lab: Day 1 — Linux Core Setup, SSH & Static IP
+
+## Lab Metadata
+- Phase: 1 – Core Systems
+- Disciplines: Linux Systems, Networking, DevOps Foundation
+- Roles Enabled: Linux SysAdmin, Junior DevOps Engineer, DevOps Engineer
+- Duration: 2–3 hours
+- Lab Version: 1.1
+
+## Lab Overview
+Provision a Linux VM with a **static IP**, secure SSH, firewall, and baseline packages. Foundation for hybrid and cloud-ready architectures.
+
+## Step-by-Step Execution
+1. VM Creation — provision baseline Linux VM for labs
+2. SSH Setup — enable secure passwordless access
+3. Update OS & Install Packages — ensure latest patches and essential tools
+4. Hostname & Hosts Configuration — consistent name resolution
+5. Static IP Verification — confirm predictable networking
+6. Firewall Configuration — basic network security
+7. Time Sync — ensure accurate logs and monitoring
+8. Connectivity Verification — confirm network & SSH
+
+## Automation / Configs
+- VM_Setup.sh
+- SSH_Config.md
+- Hosts_Config.md
+
+## Failure Injection
+- SSH key misconfiguration
+- Firewall blocks access
+- Static IP conflicts
+
+## Certification Mapping
+- AWS SAA — EC2, Security groups, Private subnet
+- AWS SAP — Multi-node infra prep, hybrid connectivity
+
+## Portfolio Artifacts
+- VM_Setup.sh
+- SSH_Config.md
+- Hosts_Config.md
+- FailureInjection.txt
+- FailureInjection.png
+
+Ubong, if you approve this updated Day 1 lab with explicit static IP & objectives, I can immediately create Day 2 — Linux Users, Groups, Permissions & Sudo, in the same detailed professional FSIE format, with portfolio artifacts, failure injection, and SAA/SAP mapping.
+
+Do you want me to proceed with Day 2 next?
