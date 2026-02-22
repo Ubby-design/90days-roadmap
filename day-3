@@ -1,0 +1,221 @@
+Perfect! Let’s move on to Day 3 — Linux Networking, Firewall Hardening & Multi-Host Static IP Planning.
+
+We’ll maintain the enterprise FSIE format, include step objectives, failure injection, knowledge graph, and portfolio artifacts.
+
+Day 3 — Linux Networking, Firewall Hardening & Multi-Host Static IP Planning
+
+Portfolio Artifact Name: Phase1_Day3_NetworkingFirewall
+
+1️⃣ Lab Metadata
+Lab Name: Day 3 — Linux Networking, Firewall Hardening & Multi-Host Static IP
+Phase: Phase 1 – Core Systems
+Objective: Configure multi-host static IPs, routing, firewall rules, and ensure secure, consistent networking for hybrid deployments.
+Disciplines Covered: Linux Systems, Networking, Security, DevOps Foundation
+Roles Enabled: Linux SysAdmin, Junior DevOps Engineer, DevOps Engineer, SRE
+Estimated Duration: 3–4 hours
+Dependencies: Day 1 (Core Setup), Day 2 (User Management)
+Lab Version: 1.0
+Date: 2026-02-07
+2️⃣ Lab Overview / Consulting Context
+
+Multi-host networking is the backbone of enterprise infrastructure. Proper static IP planning, firewall hardening, and routing are essential for hybrid cloud readiness, high availability, and secure operations. This lab ensures your VMs can communicate predictably, mimic enterprise VLAN/subnet setups, and enforce security policies at the OS level.
+
+3️⃣ Prerequisites
+
+Completed Day 1 & Day 2 labs
+
+Root/sudo access to all VMs
+
+Terminal / SSH client
+
+2–3 VMs (or nodes) with static IPs assigned
+
+4️⃣ Step-by-Step Lab Execution (With Objectives)
+Step 1 — Assign Static IPs to Multiple Hosts
+
+Objective: Ensure predictable, enterprise-ready networking for multi-node lab.
+
+# Example for Ubuntu netplan (/etc/netplan/01-netcfg.yaml)
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp0s3:
+      addresses:
+        - 192.168.56.10/24   # Node1
+        - 192.168.56.11/24   # Node2
+        - 192.168.56.12/24   # Node3
+      gateway4: 192.168.56.1
+      nameservers:
+        addresses: [8.8.8.8,8.8.4.4]
+
+Apply changes:
+
+sudo netplan apply
+ip addr show
+Step 2 — Test Multi-Host Connectivity
+
+Objective: Verify all nodes can ping each other and the gateway.
+
+ping -c 3 192.168.56.11  # From Node1 to Node2
+ping -c 3 192.168.56.12  # From Node1 to Node3
+Step 3 — Configure Firewall Rules (UFW)
+
+Objective: Restrict traffic to only necessary ports and secure multi-node communication.
+
+# Default deny incoming, allow outgoing
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# Allow SSH between nodes
+sudo ufw allow from 192.168.56.0/24 to any port 22
+
+# Optional: Allow ICMP (ping)
+sudo ufw allow proto icmp
+
+# Enable firewall
+sudo ufw enable
+sudo ufw status verbose
+Step 4 — Setup Hostname & /etc/hosts Across Nodes
+
+Objective: Ensure each VM can resolve each other without DNS (enterprise best practice).
+
+# On Node1
+sudo hostnamectl set-hostname node1
+echo "192.168.56.10 node1" | sudo tee -a /etc/hosts
+echo "192.168.56.11 node2" | sudo tee -a /etc/hosts
+echo "192.168.56.12 node3" | sudo tee -a /etc/hosts
+Step 5 — Verify SSH Access Between Nodes
+
+Objective: Confirm secure remote access between all hosts.
+
+ssh devops1@192.168.56.11
+ssh devops1@192.168.56.12
+Step 6 — Document Network & Firewall Config
+
+Objective: Maintain enterprise-grade documentation for audits and troubleshooting.
+
+Network_Config.md → IPs, hostnames, routing, firewall rules
+
+5️⃣ Automation Scripts / Config Files
+
+MultiHost_NetworkSetup.sh
+
+#!/bin/bash
+# Apply netplan configuration
+sudo netplan apply
+
+# Firewall setup
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow from 192.168.56.0/24 to any port 22
+sudo ufw enable
+sudo ufw status verbose
+
+Network_Config.md → detailed documentation
+
+6️⃣ Failure Injection & Observability
+
+Scenario 1: IP conflict → simulate and resolve
+Scenario 2: Node cannot ping another → simulate routing issue and fix
+Scenario 3: SSH blocked by firewall → troubleshoot rules
+
+Artifacts:
+
+FailureInjection_Day3.txt → steps & observations
+
+FailureInjection_Day3.png → screenshots/logs
+
+7️⃣ Knowledge Graph / Lab Dependencies
+Day1 → VM & Static IP (single host)
+       ↓
+Day2 → Users & Groups
+       ↓
+Day3 → Multi-Host Networking & Firewall
+       ↓
+Day4 → Directory/Workspace Sharing, Permissions
+       ↓
+Day5 → Automation & CI/CD Prep
+
+Purpose: Each day builds foundational capability for multi-node hybrid and SRE-ready architecture.
+
+AWS SAA Mapping: VPC subnetting, security groups, private IP assignment
+
+AWS SAP Mapping: Hybrid connectivity, multi-node access, firewall/security compliance
+
+8️⃣ Certification Mapping
+Step	AWS SAA	AWS SAP
+Multi-Host Static IP	Private subnet setup	Hybrid connectivity prep
+Firewall	Security groups / ACL analog	Multi-node hybrid security
+SSH & Hostname	EC2 keypair & name resolution	Multi-node operational access
+Documentation	Compliance readiness	Operational excellence & auditing
+9️⃣ Portfolio Folder Structure
+FSIE-Portfolio/
+ └── Phase1/
+     └── Day3_NetworkingFirewall/
+         ├── README.md
+         ├── MultiHost_NetworkSetup.sh
+         ├── Network_Config.md
+         ├── FailureInjection_Day3.txt
+         └── FailureInjection_Day3.png
+10️⃣ README.md Template
+# Lab: Day 3 — Linux Networking, Firewall Hardening & Multi-Host Static IP
+
+## Lab Metadata
+- Phase: 1 – Core Systems
+- Disciplines: Linux Systems, Networking, Security, DevOps Foundation
+- Roles Enabled: Linux SysAdmin, DevOps Engineer, SRE
+- Duration: 3–4 hours
+- Dependencies: Day 1 & Day 2
+- Lab Version: 1.0
+
+## Lab Overview
+Configure static IPs, secure firewall rules, hostnames, and SSH between multiple Linux hosts to prepare for hybrid and cloud-ready multi-node deployments.
+
+## Step-by-Step Execution
+1. Assign Static IPs — ensure predictable multi-node network
+2. Test Connectivity — verify ping between nodes
+3. Configure Firewall — secure inter-node traffic
+4. Hostname & /etc/hosts — enable name resolution without DNS
+5. SSH Verification — confirm secure remote access
+6. Document Network Config — audit trail & reproducibility
+
+## Automation / Configs
+- MultiHost_NetworkSetup.sh
+- Network_Config.md
+
+## Failure Injection
+- IP conflict simulation
+- Routing / ping failures
+- Firewall blocking SSH
+
+## Knowledge Graph
+
+Day1 → Day2 → Day3 → Day4 → Day5+
+
+
+## Certification Mapping
+- AWS SAA — VPC private subnet, security groups, EC2 access
+- AWS SAP — Hybrid multi-node connectivity, operational excellence, compliance
+
+## Portfolio Artifacts
+- MultiHost_NetworkSetup.sh
+- Network_Config.md
+- FailureInjection_Day3.txt
+- FailureInjection_Day3.png
+
+Ubong, with Day 3 completed, your FSIE lab stack now includes:
+
+Static IP planning across nodes
+
+Firewall hardening
+
+SSH inter-node access
+
+Knowledge graph & failure injection
+
+Certification mapping
+
+If you approve, we can proceed to Day 4 — Shared Workspaces, Directory Permissions & Multi-User Collaboration, which is critical for hybrid/DevOps readiness.
+
+Do you want me to proceed with Day 4 next?
