@@ -1,0 +1,240 @@
+Perfect — let’s move to Day 2 with full enterprise-grade FSIE structure, including knowledge graph, portfolio artifacts, failure injection, and SAA/SAP mapping.
+
+Day 2 — Linux Users, Groups, Permissions & Sudo
+
+Portfolio Artifact Name: Phase1_Day2_UserMgmt
+
+1️⃣ Lab Metadata
+Lab Name: Day 2 — Linux Users, Groups, Permissions & Sudo
+Phase: Phase 1 – Core Systems
+Objective: Implement user and group management, configure file permissions, and enable sudo privileges for secure operations.
+Disciplines Covered: Linux Systems, Security, DevOps Foundation
+Roles Enabled: Linux SysAdmin, Junior DevOps Engineer, DevOps Engineer
+Estimated Duration: 2–3 hours
+Dependencies: Day 1 – Linux Core Setup, Static IP
+Lab Version: 1.0
+Date: 2026-02-07
+2️⃣ Lab Overview / Consulting Context
+
+Proper user and permission management is critical for secure and compliant operations. Misconfigured users, groups, or sudo privileges can lead to data breaches or operational failures. This lab builds the foundation for enterprise-grade Linux access control, directly relevant to AWS IAM analogs for SAA and hybrid multi-node setups for SAP.
+
+3️⃣ Prerequisites
+
+Day 1 completed (VM up, static IP configured, SSH working)
+
+Root or sudo access to VM
+
+Terminal / SSH client
+
+4️⃣ Step-by-Step Lab Execution (With Objectives)
+Step 1 — Add Users
+
+Objective: Create users for operational and administrative purposes.
+
+# Add a regular user
+sudo adduser devops1
+# Add a system/admin user
+sudo adduser fsieadmin
+
+Explanation: Separate accounts for security and audit; aligns with least privilege principle.
+
+Step 2 — Add Groups
+
+Objective: Group users to simplify permissions management.
+
+# Create groups
+sudo groupadd devops
+sudo groupadd admins
+
+# Add users to groups
+sudo usermod -aG devops devops1
+sudo usermod -aG admins fsieadmin
+
+Explanation: Groups allow centralized permission control; mirrors AWS IAM groups.
+
+Step 3 — Configure File & Directory Permissions
+
+Objective: Control access to critical directories and files.
+
+# Create project directory
+sudo mkdir /srv/fsie-project
+sudo chown fsieadmin:admins /srv/fsie-project
+sudo chmod 770 /srv/fsie-project
+
+Explanation: Only admins and authorized users can access; enforces principle of least privilege.
+
+Step 4 — Sudo Privileges
+
+Objective: Grant controlled administrative access to users.
+
+# Edit sudoers safely
+sudo visudo
+
+# Add user
+fsieadmin ALL=(ALL) NOPASSWD:ALL
+devops1 ALL=(ALL) ALL
+
+Explanation: fsieadmin can run any command without password (for automation), devops1 requires password — mimics controlled escalation.
+
+Step 5 — Test Permissions
+
+Objective: Validate access rights.
+
+# Switch user and test
+su - devops1
+ls -l /srv/fsie-project   # Should be readable/writeable only for allowed users
+
+su - fsieadmin
+touch /srv/fsie-project/test.txt  # Should succeed
+Step 6 — Document Users & Permissions
+
+Objective: Maintain enterprise-grade audit trail.
+
+# List users
+cut -d: -f1 /etc/passwd
+
+# List groups
+cut -d: -f1 /etc/group
+
+# List sudoers
+sudo cat /etc/sudoers
+
+Artifact: Users_Groups_Permissions.md — documents setup for portfolio
+
+5️⃣ Automation Scripts / Config Files
+
+UserMgmt_Setup.sh
+
+#!/bin/bash
+# Add users
+sudo adduser devops1 --gecos "" --disabled-password
+sudo adduser fsieadmin --gecos "" --disabled-password
+
+# Add groups
+sudo groupadd devops
+sudo groupadd admins
+
+# Assign users to groups
+sudo usermod -aG devops devops1
+sudo usermod -aG admins fsieadmin
+
+# Directory setup
+sudo mkdir -p /srv/fsie-project
+sudo chown fsieadmin:admins /srv/fsie-project
+sudo chmod 770 /srv/fsie-project
+
+# Sudoers setup
+echo "fsieadmin ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers
+echo "devops1 ALL=(ALL) ALL" | sudo tee -a /etc/sudoers
+
+Users_Groups_Permissions.md — documents all users, groups, directories, permissions, sudo access
+
+6️⃣ Failure Injection & Observability
+
+Scenario 1: devops1 cannot access restricted directory → fix ownership/permissions
+Scenario 2: fsieadmin sudo misconfigured → simulate automation failure
+Scenario 3: Group membership missing → simulate audit failure
+
+Artifacts:
+
+FailureInjection_Day2.txt → steps & observations
+
+FailureInjection_Day2.png → screenshots/logs
+
+7️⃣ Knowledge Graph / Lab Dependencies
+Day1: Linux Core Setup + Static IP
+       ↓
+Day2: Users & Groups Setup
+       ↓
+Day3: Linux Networking & Firewall
+       ↓
+Day4: Multi-node Lab + Hostname/Subnet Planning
+       ↓
+Day5+: Automation, Docker, Kubernetes, Hybrid Architecture
+
+Notes:
+
+User/group setup is foundational for Sudo-based automation, DevOps pipelines, and security compliance
+
+AWS SAA analog: IAM users, groups, policies
+
+AWS SAP analog: Multi-node hybrid access and operational security
+
+8️⃣ Certification Mapping
+Step	AWS SAA	AWS SAP
+User Creation	EC2 access management	Multi-node hybrid security
+Group Assignment	IAM group analog	Multi-node operational control
+File Permissions	EBS volume security / OS hardening	Hybrid DR & file access compliance
+Sudo Setup	EC2 admin access / OS hardening	Operational automation / SRE readiness
+9️⃣ Portfolio Folder Structure
+FSIE-Portfolio/
+ └── Phase1/
+     └── Day2_UserMgmt/
+         ├── README.md
+         ├── UserMgmt_Setup.sh
+         ├── Users_Groups_Permissions.md
+         ├── FailureInjection_Day2.txt
+         └── FailureInjection_Day2.png
+10️⃣ README.md Template
+# Lab: Day 2 — Linux Users, Groups, Permissions & Sudo
+
+## Lab Metadata
+- Phase: 1 – Core Systems
+- Disciplines: Linux Systems, Security, DevOps Foundation
+- Roles Enabled: Linux SysAdmin, Junior DevOps Engineer, DevOps Engineer
+- Duration: 2–3 hours
+- Dependencies: Day 1 — Linux Core Setup
+- Lab Version: 1.0
+
+## Lab Overview
+Create users/groups, configure permissions, and assign sudo privileges to enforce security and enable automation.
+
+## Step-by-Step Execution
+1. Add Users — separate operational and admin accounts
+2. Add Groups — centralize permission management
+3. Configure File/Directory Permissions — enforce least privilege
+4. Configure Sudo — controlled admin access
+5. Test Permissions — verify correct access
+6. Document Users & Permissions — maintain audit trail
+
+## Automation / Configs
+- UserMgmt_Setup.sh
+- Users_Groups_Permissions.md
+
+## Failure Injection
+- Restricted access issues
+- Sudo misconfiguration
+- Group membership missing
+
+## Knowledge Graph
+
+Day1 → Day2 → Day3 → Day4+
+
+
+## Certification Mapping
+- AWS SAA — EC2 access control, OS hardening, IAM analogs
+- AWS SAP — Multi-node hybrid access, operational compliance
+
+## Portfolio Artifacts
+- UserMgmt_Setup.sh
+- Users_Groups_Permissions.md
+- FailureInjection_Day2.txt
+- FailureInjection_Day2.png
+
+Ubong, we now have Day 1 + Day 2 fully structured, with:
+
+Step objectives
+
+Static IP integration
+
+Knowledge graph
+
+Failure injection
+
+Portfolio artifact structure
+
+SAA/SAP mapping
+
+If you approve, we can move to Day 3 — Linux Networking, Firewall Hardening & Multi-Host Static IP Planning, which is critical for hybrid architecture readiness.
+
+Do you want me to proceed with Day 3 next?
